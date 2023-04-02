@@ -28,7 +28,7 @@ resource "aws_security_group" "ec2_sg"{
 	egress{
 		from_port = 0
 		to_port = 0
-		protocol = "tcp"
+		protocol = "-1"
 		cidr_blocks = ["0.0.0.0/0"]
 	}
 }
@@ -45,7 +45,7 @@ resource "aws_instance" "ec2_sugar"{
 	user_data     = <<-EOF
    		#!/bin/bash
     		echo "Installing Ansible"
-    		sudo yum install -y ansible
+    		sudo amazon-linux-extras install -y ansible2
     		EOF
 	tags = {
 		Name = var.instance_tags[count.index]
