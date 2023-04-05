@@ -1,7 +1,4 @@
-provider "aws"{
-	region = "us-east-1"
-}
-
+#create a VPC
 resource "aws_vpc" "vpc_sugar"{
 	cidr_block = "172.0.0.0/16"
 	tags = {
@@ -9,6 +6,7 @@ resource "aws_vpc" "vpc_sugar"{
 	}
 }
 
+#Create 2 subnet
 resource "aws_subnet" "subnet_sugar"{
 	cidr_block = "172.0.1.0/24"
 	vpc_id = aws_vpc.vpc_sugar.id	
@@ -26,7 +24,7 @@ resource "aws_subnet" "subnet_sugar_1"{
         }
 }
 
-#igw-wp
+#Internet gateway
 resource "aws_internet_gateway" "sugar_igw"{
         vpc_id = aws_vpc.vpc_sugar.id
         tags = {
@@ -34,6 +32,7 @@ resource "aws_internet_gateway" "sugar_igw"{
         }
 }
 
+#Route table for the internet gateway
 resource "aws_route_table" "rt"{
 	vpc_id = aws_vpc.vpc_sugar.id
 	route{
@@ -43,7 +42,7 @@ resource "aws_route_table" "rt"{
 }
 
 
-
+#Associate the subnets to the route table
 resource "aws_route_table_association" "a" {
   subnet_id      = aws_subnet.subnet_sugar.id
   route_table_id = aws_route_table.rt.id
@@ -54,7 +53,7 @@ resource "aws_route_table_association" "b" {
   route_table_id = aws_route_table.rt.id
 }
 
-
+#Security group for master instance
 resource "aws_security_group" "ec2_master_sg"{
 	name_prefix = "Sugar_ec2_sg_Master"
 	vpc_id = aws_vpc.vpc_sugar.id
@@ -84,7 +83,7 @@ resource "aws_security_group" "ec2_master_sg"{
 	}
 }
 
-
+#Security group for slave instance
 resource "aws_security_group" "ec2_slave_sg"{
         name_prefix = "Sugar_ec2_sg_slave"
 	vpc_id = aws_vpc.vpc_sugar.id
@@ -160,18 +159,18 @@ resource "aws_instance" "ec2_sugar_master"{
     		chmod 600 /home/ec2-user/.ssh/authorized_keys
 		echo "${file("/home/ec2-user/my_devops_playground/tf/mykeys_ssh")}" > /home/ec2-user/mykeys_ssh
 		chmod 600 /home/ec2-user/mykeys_ssh
-		sudo chown ec2-user:ec2-user mykeys_ssh
+		chown ec2-user:ec2-user mykeys_ssh
 
 	       EOF
         tags = {
                 Name = "Master"
         }
 	
-	provisioner "remote-exec" {
-    inline = [
-      "sudo hostnamectl set-hostname master",
-    ]
-  }
+#	provisioner "remote-exec" {
+#    inline = [
+#      "sudo hostnamectl set-hostname master",
+#    ]
+#  }
 
 }
 
@@ -206,18 +205,18 @@ resource "aws_instance" "ec2_sugar_slave"{
                 chmod 700 /home/ec2-user/.ssh
                 chmod 600 /home/ec2-user/.ssh/authorized_keys
                 echo "${file("/home/ec2-user/my_devops_playground/tf/mykeys_ssh")}" > /home/ec2-user/mykeys_ssh
-                chmod 600 /home/ec2-user/mykeys_ssh
+                sudo chmod 600 /home/ec2-user/mykeys_ssh
                 sudo chown ec2-user:ec2-user mykeys_ssh
                EOF
         tags = {
                 Name = var.instance_tags[count.index]
         }
 
-	provisioner "remote-exec" {
-    inline = [
-      "sudo hostnamectl set-hostname ${var.instance_tags[count.index]}"
-    ]
-  }
+#	provisioner "remote-exec" {
+#    inline = [
+#      "sudo hostnamectl set-hostname ${var.instance_tags[count.index]}"
+#    ]
+#  }
 
 }
 
