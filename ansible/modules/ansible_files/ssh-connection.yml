@@ -1,0 +1,9 @@
+#With this file i will try to connect to the target instances
+---
+- name: Ping hosts
+  hosts: all
+  tasks:
+    - name: Ping
+      ping:
+
+
